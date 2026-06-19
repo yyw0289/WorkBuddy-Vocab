@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>雅思词汇智学 · 单词记忆引擎</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#eef2f7;--card:#fff;--text:#1e293b;--text-light:#64748b;--border:#e2e8f0;--primary:#6366f1;--primary-dark:#4f46e5;--primary-light:#eef2ff;--orange:#f59e0b;--green:#10b981;--green-light:#ecfdf5;--purple:#8b5cf6;--purple-light:#f5f3ff;--red:#ef4444;--radius:14px;--shadow:0 4px 20px rgba(0,0,0,.06);--shadow-hover:0 8px 30px rgba(99,102,241,.15)}
+body{font-family:-apple-system,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;background:var(--bg);color:var(--text);line-height:1.6;-webkit-text-size-adjust:100%}
+button{cursor:pointer;font-family:inherit;border:none;background:none}
+input{font-family:inherit}
+.app{max-width:1180px;margin:0 auto;padding:16px 16px 40px}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.brand{display:flex;align-items:center;gap:12px}
+.logo{font-size:30px;width:52px;height:52px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--primary),var(--purple));border-radius:14px;box-shadow:0 6px 18px rgba(99,102,241,.35)}
+.brand-text h1{font-size:19px;font-weight:800}
+.brand-text p{font-size:11.5px;color:var(--text-light)}
+.btn-icon{background:var(--card);border:1px solid var(--border);width:42px;height:42px;border-radius:11px;font-size:19px;transition:.2s}
+.btn-icon:hover{background:var(--primary-light)}
+.search-box{display:flex;gap:8px;margin-bottom:20px;background:var(--card);padding:7px;border-radius:var(--radius);box-shadow:var(--shadow)}
+#wordInput{flex:1;border:none;outline:none;font-size:16px;padding:12px 16px;border-radius:10px;background:#f8fafc}
+#wordInput:focus{background:#fff;box-shadow:inset 0 0 0 2px var(--primary)}
+.btn-primary{background:linear-gradient(135deg,var(--primary),var(--primary-dark));color:#fff;font-size:15px;font-weight:600;padding:0 24px;border-radius:10px;transition:.2s;white-space:nowrap}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:var(--shadow-hover)}
+.btn-primary:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.main{display:grid;grid-template-columns:1fr 300px;gap:16px;align-items:start}
+.result-area{min-height:350px}
+.placeholder{background:var(--card);border-radius:var(--radius);padding:48px 24px;text-align:center;box-shadow:var(--shadow);color:var(--text-light)}
+.placeholder-icon{font-size:48px;margin-bottom:14px}
+.placeholder h2{color:var(--text);margin-bottom:10px;font-size:18px}
+.placeholder p{max-width:460px;margin:0 auto 16px;font-size:13.5px}
+.tips{display:flex;gap:7px;justify-content:center;flex-wrap:wrap}
+.tip-tag{background:var(--primary-light);color:var(--primary);padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600}
+.loading-card{background:var(--card);border-radius:var(--radius);padding:44px 24px;text-align:center;box-shadow:var(--shadow)}
+.spinner{width:40px;height:40px;border:4px solid var(--primary-light);border-top-color:var(--primary);border-radius:50%;margin:0 auto 14px;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-dots::after{content:'';animation:dots 1.4s steps(4) infinite}
+@keyframes dots{0%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}100%{content:''}}
+.word-card{animation:fadeUp .35s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.card{background:var(--card);border-radius:var(--radius);padding:16px 18px;margin-bottom:12px;box-shadow:var(--shadow);transition:.2s}
+.card:hover{box-shadow:var(--shadow-hover)}
+.card-title{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;color:var(--text-light)}
+.card-title .icon{font-size:16px}
+.word-header{display:flex;align-items:center;flex-wrap:wrap;gap:14px}
+.word-text{font-size:34px;font-weight:800;letter-spacing:-.5px}
+.phonetics{display:flex;flex-direction:column;gap:3px}
+.phonetic-row{display:flex;align-items:center;gap:7px;font-size:13.5px;color:var(--text-light)}
+.phonetic-row .tag{font-size:10.5px;font-weight:700;color:var(--primary)}
+.btn-speak{background:var(--primary-light);color:var(--primary);width:30px;height:30px;border-radius:50%;font-size:13px;display:flex;align-items:center;justify-content:center;transition:.2s}
+.btn-speak:hover{background:var(--primary);color:#fff;transform:scale(1.1)}
+.header-actions{margin-left:auto;display:flex;gap:7px;align-items:center}
+.save-btn{background:var(--green);color:#fff;padding:8px 16px;border-radius:10px;font-size:13.5px;font-weight:600;transition:.2s}
+.save-btn:hover{background:#059669;transform:translateY(-1px)}
+.save-btn.saved{background:#cbd5e1}
+.def-list{display:flex;flex-direction:column;gap:9px}
+.def-item{padding-left:12px;border-left:3px solid var(--primary-light)}
+.def-pos{font-size:11.5px;color:var(--primary);font-weight:700;font-style:italic}
+.def-en{font-size:13.5px}
+.def-zh{font-size:13.5px;color:var(--text-light)}
+.meaning-main{font-size:16px;font-weight:600;background:var(--primary-light);padding:9px 13px;border-radius:10px}
+.example-en{font-size:15px;font-weight:600;margin-bottom:5px}
+.example-zh{font-size:13.5px;color:var(--text-light)}
+.example-card{background:var(--green-light);border-left:4px solid var(--green)}
+.example-card .card-title{color:var(--green)}
+.point-card{background:var(--purple-light);border-left:4px solid var(--purple)}
+.point-card .card-title{color:var(--purple)}
+.point-text{font-size:14px}
+.mnemonic-card.sound{background:linear-gradient(135deg,#fffbeb,#fef3c7);border-left:4px solid var(--orange)}
+.mnemonic-card.sound .card-title{color:var(--orange)}
+.mnemonic-card.letter{background:linear-gradient(135deg,#f5f3ff,#ede9fe);border-left:4px solid var(--purple)}
+.mnemonic-card.letter .card-title{color:var(--purple)}
+.mnemonic-text{font-size:14.5px;line-height:1.75}
+.ai-badge{font-size:10px;padding:2px 7px;border-radius:10px;background:rgba(255,255,255,.6);color:var(--text-light);margin-left:auto;font-weight:600}
+.source-note{font-size:10.5px;color:var(--text-light);text-align:right;margin-top:8px;opacity:.7}
+.wordbook{background:var(--card);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);position:sticky;top:16px;max-height:calc(100vh - 32px);display:flex;flex-direction:column}
+.wordbook-header{display:flex;align-items:center;gap:7px;margin-bottom:12px}
+.wordbook-header h2{font-size:15px;font-weight:700}
+.count{background:var(--primary);color:#fff;font-size:11px;font-weight:700;padding:1px 8px;border-radius:11px}
+.filter-input{width:100%;border:1px solid var(--border);outline:none;padding:8px 11px;border-radius:9px;font-size:12.5px;margin-bottom:10px;background:#f8fafc}
+.filter-input:focus{border-color:var(--primary);background:#fff}
+.word-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:7px}
+.word-list::-webkit-scrollbar{width:4px}
+.word-list::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:2px}
+.empty-list{text-align:center;color:var(--text-light);font-size:12.5px;padding:26px 0}
+.word-item{display:flex;align-items:center;gap:7px;padding:9px 11px;border-radius:10px;background:#f8fafc;cursor:pointer;transition:.15s;border:1px solid transparent}
+.word-item:hover{background:var(--primary-light);border-color:var(--primary)}
+.word-item.active{background:var(--primary-light);border-color:var(--primary)}
+.word-item .info{flex:1;min-width:0}
+.word-item .w{font-size:13px;font-weight:700}
+.word-item .m{font-size:11px;color:var(--text-light);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.word-item .del{color:#cbd5e1;font-size:15px;padding:2px 5px;border-radius:5px;opacity:0;transition:.15s}
+.word-item:hover .del{opacity:1}
+.word-item .del:hover{color:var(--red);background:#fef2f2}
+.modal-mask{position:fixed;inset:0;background:rgba(15,23,42,.5);display:none;align-items:center;justify-content:center;z-index:100;backdrop-filter:blur(3px)}
+.modal-mask.show{display:flex;animation:fade .2s}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+.modal{background:#fff;border-radius:16px;width:420px;max-width:92vw;box-shadow:0 20px 60px rgba(0,0,0,.25);animation:pop .25s;max-height:90vh;overflow-y:auto}
+@keyframes pop{from{transform:scale(.95);opacity:0}to{transform:scale(1);opacity:1}}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border)}
+.modal-header h3{font-size:16px}
+.btn-close{font-size:24px;color:var(--text-light);line-height:1}
+.modal-body{padding:18px 20px}
+.modal-tip{font-size:12px;color:var(--text-light);background:#f8fafc;padding:11px;border-radius:9px;margin-bottom:14px}
+.modal-body label{display:block;font-size:12.5px;font-weight:600;margin:10px 0 4px}
+.modal-body input{width:100%;border:1px solid var(--border);outline:none;padding:9px 11px;border-radius:8px;font-size:13.5px}
+.modal-body input:focus{border-color:var(--primary)}
+.modal-status{font-size:12px;margin-top:9px;min-height:16px}
+.modal-status.ok{color:var(--green)}
+.modal-footer{display:flex;justify-content:flex-end;gap:9px;padding:14px 20px;border-top:1px solid var(--border)}
+.btn-ghost{background:#f1f5f9;color:var(--text-light);padding:8px 15px;border-radius:8px;font-size:13px;font-weight:600}
+.btn-ghost:hover{background:#e2e8f0}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(70px);background:#1e293b;color:#fff;padding:11px 22px;border-radius:10px;font-size:13px;z-index:200;opacity:0;transition:.3s;box-shadow:0 8px 24px rgba(0,0,0,.2)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.footer{text-align:center;font-size:11px;color:var(--text-light);margin-top:26px;padding-top:16px;border-top:1px solid var(--border)}
+@media(max-width:860px){.main{grid-template-columns:1fr}.wordbook{position:static;max-height:340px}.word-text{font-size:28px}.header-actions{margin-left:0;width:100%;margin-top:8px}.save-btn{flex:1;text-align:center}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">📖</span>
+      <div class="brand-text">
+        <h1>雅思词汇智学</h1>
+        <p>释义 · 音标 · 读音 · 雅思考点 · 记忆法</p>
+      </div>
+    </div>
+    <button class="btn-icon" id="btnSettings" title="AI设置">⚙️</button>
+  </header>
+  <section class="search-box">
+    <input type="text" id="wordInput" placeholder="输入英语单词，如 ambitious / environment" autocomplete="off" spellcheck="false">
+    <button id="btnSearch" class="btn-primary">查询</button>
+  </section>
+  <main class="main">
+    <section class="result-area" id="resultArea">
+      <div class="placeholder">
+        <div class="placeholder-icon">🔍</div>
+        <h2>开始你的词汇之旅</h2>
+        <p>输入任意英语单词，即时获取<b>中文释义</b>·<b>音标</b>·<b>读音</b>·<b>雅思考点例句</b>·<b>读音记忆法</b>·<b>字母记忆法</b>，并可保存到专属生词本。</p>
+        <div class="tips"><span class="tip-tag">输入单词</span><span class="tip-tag">一键查询</span><span class="tip-tag">保存复习</span></div>
+      </div>
+    </section>
+    <aside class="wordbook">
+      <div class="wordbook-header"><h2>📚 生词本</h2><span class="count" id="wordCount">0</span></div>
+      <input type="text" id="filterInput" class="filter-input" placeholder="搜索已保存单词…">
+      <div class="word-list" id="wordList"><div class="empty-list">暂无保存的单词</div></div>
+    </aside>
+  </main>
+  <footer class="footer">数据来源：dictionaryapi.dev · MyMemory翻译 · 离线记忆引擎 · Web Speech API · 生词本存储于本地浏览器</footer>
+</div>
+
+<div class="modal-mask" id="settingsModal">
+  <div class="modal">
+    <div class="modal-header"><h3>⚙️ AI 引擎设置</h3><button class="btn-close" id="btnCloseSettings">×</button></div>
+    <div class="modal-body">
+      <p class="modal-tip">默认使用离线引擎生成记忆法，无需配置。如有专属API Key，可填入获得更智能的记忆内容。</p>
+      <label>API Base URL</label><input type="text" id="setBaseUrl" placeholder="如 https://api.openai.com/v1">
+      <label>API Key</label><input type="password" id="setApiKey" placeholder="sk-…">
+      <label>模型名称</label><input type="text" id="setModel" placeholder="如 gpt-4o-mini">
+      <div class="modal-status" id="settingsStatus"></div>
+    </div>
+    <div class="modal-footer"><button class="btn-ghost" id="btnClearKey">清除Key</button><button class="btn-primary" id="btnSaveSettings">保存</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+
+// ============================================================
+// 工具函数
+// ============================================================
+function $(id) { return document.getElementById(id); }
+
+function esc(s) {
+  if (s == null) return "";
+  var div = document.createElement("div");
+  div.textContent = String(s);
+  return div.innerHTML;
+}
+
+function toast(msg) {
+  var t = $("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(t._timer);
+  t._timer = setTimeout(function() { t.classList.remove("show"); }, 2200);
+}
+
+// 朗读
+var voices = [];
+function initVoices() {
+  if (window.speechSynthesis) {
+    voices = speechSynthesis.getVoices();
+  }
+}
+if (window.speechSynthesis) {
+  initVoices();
+  speechSynthesis.onvoiceschanged = initVoices;
+}
+function speak(text, lang) {
+  lang = lang || "en-US";
+  if (!window.speechSynthesis || !text) return;
+  speechSynthesis.cancel();
+  var u = new SpeechSynthesisUtterance(text);
+  u.lang = lang;
+  u.rate = 0.92;
+  for (var i = 0; i < voices.length; i++) {
+    if (voices[i].lang === lang) { u.voice = voices[i]; break; }
+  }
+  speechSynthesis.speak(u);
+}
+
+// ============================================================
+// 数据表：音标→中文谐音
+// ============================================================
+var PHONETIC_MAP = {
+  "æ":"阿","e":"埃","ə":"厄","ʌ":"阿","ɑ":"阿","ɔ":"奥","ʊ":"乌","u":"乌",
+  "i":"衣","iː":"衣","uː":"乌","ɔː":"奥","ɑː":"阿","ɜː":"厄","aɪ":"艾",
+  "aʊ":"奥","ɔɪ":"奥衣","eɪ":"诶","oʊ":"欧","əʊ":"欧","ɪə":"衣厄","eə":"埃厄",
+  "ʊə":"乌厄","tʃ":"吃","dʒ":"吉","θ":"丝","ð":"滋","ʃ":"什","ʒ":"日",
+  "ŋ":"恩","w":"乌","j":"衣","b":"布","d":"德","f":"夫","g":"格","h":"赫",
+  "k":"克","l":"尔","m":"姆","n":"恩","p":"普","r":"尔","s":"斯","t":"特",
+  "v":"夫","z":"兹","ɪ":"衣","ɡ":"格"
+};
+
+// ============================================================
+// 数据表：词根词缀
+// ============================================================
+var AFFIXES = [
+  ["anti","前缀：反对、抗"],["auto","前缀：自动、自己"],["bio","前缀：生命"],
+  ["circum","前缀：环绕"],["counter","前缀：反对"],["dis","前缀：否定、相反"],
+  ["ex","前缀：向外、前任"],["extra","前缀：超出"],["fore","前缀：预先"],
+  ["geo","前缀：地球"],["hyper","前缀：超过、过度"],["inter","前缀：在…之间"],
+  ["intra","前缀：在内部"],["micro","前缀：微小"],["mis","前缀：错误"],
+  ["multi","前缀：多"],["non","前缀：不"],["over","前缀：过度"],
+  ["poly","前缀：多"],["post","前缀：后"],["pre","前缀：前、预先"],
+  ["pro","前缀：向前、支持"],["re","前缀：再、回"],["sub","前缀：下、次"],
+  ["super","前缀：超、上"],["sur","前缀：超过"],["sym","前缀：共同"],
+  ["tele","前缀：远"],["trans","前缀：跨越"],["ultra","前缀：极端"],
+  ["un","前缀：否定"],["under","前缀：不足"],["co","前缀：共同"],
+  ["en","前缀：使…"],["em","前缀：使…"],["con","前缀：共同"],
+  ["de","前缀：向下、去除"],["per","前缀：贯穿"],
+  ["able","后缀：能…的"],["ible","后缀：能…的"],["ation","后缀：动作/状态"],
+  ["ition","后缀：动作/状态"],["ful","后缀：充满…的"],["ify","后缀：使…化"],
+  ["ize","后缀：…化"],["ist","后缀：…的人"],["ity","后缀：性质/状态"],
+  ["ive","后缀：…的"],["less","后缀：无…的"],["ment","后缀：行为/结果"],
+  ["ness","后缀：状态/性质"],["ous","后缀：多…的"],["ship","后缀：关系/身份"],
+  ["tion","后缀：动作/状态"],["sion","后缀：动作/状态"],["ward","后缀：向…"],
+  ["ly","后缀：…地"],["er","后缀：…的人/物"],["or","后缀：…的人/物"],
+  ["al","后缀：…的"],["ic","后缀：…的"],["y","后缀：…的"],
+  ["ed","后缀：过去式/形容词"],["ing","后缀：进行中/名词"]
+];
+
+var ROOTS = [
+  ["amb","词根：走、去"],["duct","词根：引导"],["duc","词根：引导"],
+  ["ject","词根：抛、掷"],["tract","词根：拉、拖"],["port","词根：搬运"],
+  ["spect","词根：看"],["dict","词根：说"],["scrib","词根：写"],
+  ["script","词根：写"],["miss","词根：送、发"],["vert","词根：转"],
+  ["vers","词根：转"],["cept","词根：抓、拿"],["fact","词根：做"],
+  ["fect","词根：做"],["form","词根：形状"],["struct","词根：建造"],
+  ["gest","词根：携带"],["gress","词根：步、级"],["lect","词根：选、读"],
+  ["log","词根：语言、学问"],["lum","词根：光"],["luc","词根：光"],
+  ["mand","词根：命令"],["mem","词根：记忆"],["min","词根：小、突出"],
+  ["mov","词根：动"],["mot","词根：动"],["pend","词根：悬挂"],
+  ["phon","词根：声音"],["pos","词根：放置"],["rupt","词根：断裂"],
+  ["sequ","词根：跟随"],["sent","词根：感觉"],["sens","词根：感觉"],
+  ["tain","词根：保持、拿"],["vid","词根：看"],["vis","词根：看"],
+  ["voc","词根：声音、叫"],["vok","词根：叫"],["volv","词根：转"],
+  ["cred","词根：相信"],["curr","词根：跑"],["curs","词根：跑"],
+  ["dem","词根：人民"],["domin","词根：统治"],["equ","词根：相等"],
+  ["frag","词根：破"],["fract","词根：破"],["gen","词根：出生、产生"],
+  ["grad","词根：步、级"],["liber","词根：自由"],["liter","词根：文字"],
+  ["loc","词根：地方"],["magn","词根：大"],["man","词根：手"],
+  ["mar","词根：海"],["mater","词根：母亲"],["meter","词根：测量"],
+  ["migr","词根：迁移"],["mort","词根：死"],["nav","词根：船"],
+  ["norm","词根：规范"],["nov","词根：新"],["path","词根：感情/疾病"],
+  ["ped","词根：脚/儿童"],["pel","词根：推、驱"],["puls","词根：推、驱"],
+  ["phil","词根：爱"],["phob","词根：恐惧"],["plic","词根：折叠"],
+  ["plex","词根：折叠"],["pon","词根：放置"],["pop","词根：人民"],
+  ["prim","词根：第一"],["priv","词根：私人"],["prob","词根：验证"],
+  ["quer","词根：寻求"],["quis","词根：寻求"],["rect","词根：直"],
+  ["scop","词根：看"],["sect","词根：切割"],["solv","词根：松开"],
+  ["spir","词根：呼吸"],["stat","词根：站立"],["strict","词根：绑"],
+  ["stru","词根：建造"],["tact","词根：接触"],["tang","词根：接触"],
+  ["tempor","词根：时间"],["tend","词根：伸展"],["tens","词根：伸展"],
+  ["test","词根：见证"],["tor","词根：扭转"],["tort","词根：扭转"],
+  ["urb","词根：城市"],["vent","词根：来"],["vic","词根：征服"],
+  ["vit","词根：生命"],["viv","词根：生命"]
+];
+
+// ============================================================
+// 雅思例句模板 & 考点
+// ============================================================
+var IELTS_TEMPLATES = {
+  noun: [
+    "The importance of {word} cannot be overstated in contemporary academic discussions.",
+    "Scholars have increasingly recognised {word} as a key factor in social development.",
+    "A thorough understanding of {word} is essential for addressing this global challenge."
+  ],
+  verb: [
+    "Individuals and governments alike should strive to {word} in addressing this challenge.",
+    "It is crucial that societies find effective ways to {word} towards sustainable development.",
+    "Many researchers suggest that communities can {word} to solve complex social problems."
+  ],
+  adjective: [
+    "The {word} nature of this phenomenon deserves careful academic consideration.",
+    "Several {word} factors have contributed to this growing trend in modern society.",
+    "Researchers have identified {word} patterns that merit further investigation."
+  ],
+  adverb: [
+    "This issue has {word} influenced the policy decisions of many nations.",
+    "The global economy has been {word} shaped by technological innovation.",
+    "Climate change has {word} impacted communities across the developing world."
+  ],
+  default: [
+    "In IELTS writing and speaking, the word {word} is frequently used to convey nuanced meanings.",
+    "Candidates are expected to demonstrate accurate use of {word} in academic contexts.",
+    "Mastering words like {word} can significantly enhance one IELTS Lexical Resource score."
+  ]
+};
+
+var IELTS_POINTS = {
+  noun: "雅思高频名词，常用于Task 2议论文和口语Part 3深入讨论。建议掌握搭配介词和同义替换，提升词汇分数。",
+  verb: "雅思高频动词，适用于Task 2论证和口语表达。注意时态变化和不规则变形，口语Part 2灵活运用可加分。",
+  adjective: "雅思高频形容词，写作Task 2和口语均适用。用于替换basic形容词，提升词汇多样性得分。",
+  adverb: "雅思高频副词，用于修饰动词/形容词，增强表达精准度。在口语流利度和写作连贯性方面有加分作用。",
+  default: "雅思核心词汇，适用于写作和口语多个话题。建议掌握搭配用法、同义替换和反义词，在语境中灵活运用。"
+};
+
+// ============================================================
+// 离线记忆引擎
+// ============================================================
+function phoneticToChinese(ph) {
+  if (!ph) return "";
+  ph = ph.replace(/[/\[\]\(\)ˈˌ']/g, "").trim();
+  var result = [];
+  var i = 0;
+  while (i < ph.length) {
+    var matched = false;
+    for (var l = 3; l >= 2; l--) {
+      var chunk = ph.substr(i, l);
+      if (PHONETIC_MAP[chunk]) {
+        result.push(PHONETIC_MAP[chunk]);
+        i += l;
+        matched = true;
+        break;
+      }
+    }
+    if (!matched) {
+      var ch = ph[i];
+      if (PHONETIC_MAP[ch]) result.push(PHONETIC_MAP[ch]);
+      i++;
+    }
+  }
+  // 去重相邻
+  var deduped = [];
+  for (var j = 0; j < result.length; j++) {
+    if (deduped.length === 0 || deduped[deduped.length - 1] !== result[j]) {
+      deduped.push(result[j]);
+    }
+  }
+  return deduped.slice(0, 6).join("");
+}
+
+function genSoundMnemonic(word, ph, cn) {
+  var h = phoneticToChinese(ph);
+  if (h && h.length >= 2) {
+    return "「" + word + "」读音似「" + h + "」。联想：想象一个叫「" + h +
+      "」的人或事物，它和「" + (cn || word) + "」有关——把这个画面印在脑海里，" +
+      "念三遍 " + h + " → " + word + "，声音和意义就绑定了。";
+  }
+  return "「" + word + "」音标 " + (ph || "（暂无）") + "。朗读三遍：" +
+    word + " → " + word + " → " + word + "，同时联想其含义「" + (cn || "—") + "」。";
+}
+
+function genLetterMnemonic(word, cn) {
+  var w = word.toLowerCase();
+  var parts = [];
+  var rem = w;
+  // 前缀
+  for (var i = 0; i < AFFIXES.length; i++) {
+    var a = AFFIXES[i][0], desc = AFFIXES[i][1];
+    if (rem.indexOf(a) === 0 && a.length >= 2 && rem.length > a.length + 1) {
+      parts.push(a + "-（" + desc + "）");
+      rem = rem.slice(a.length);
+      break;
+    }
+  }
+  // 后缀
+  var sufMatched = false;
+  for (var j = 0; j < AFFIXES.length; j++) {
+    var af = AFFIXES[j][0], adesc = AFFIXES[j][1];
+    if (rem.length > af.length + 1 && rem.lastIndexOf(af) === rem.length - af.length && af.length >= 2) {
+      parts.push("-" + af + "（" + adesc + "）");
+      rem = rem.slice(0, rem.length - af.length);
+      sufMatched = true;
+      break;
+    }
+  }
+  // 词根
+  for (var k = 0; k < ROOTS.length; k++) {
+    var r = ROOTS[k][0], rdesc = ROOTS[k][1];
+    if (r.length >= 3 && rem.indexOf(r) >= 0) {
+      parts.push(r + "-（" + rdesc + "）");
+      break;
+    }
+  }
+  if (parts.length > 0) {
+    var result = "「" + word + "」拆分：" + parts.join(" + ") + "。";
+    if (cn) result += "整体含义「" + cn + "」，将各部分含义串联理解。";
+    return result;
+  }
+  if (w.length <= 4) {
+    return "「" + word + "」为短词，建议整体记忆。反复朗读并联想其含义「" + (cn || "—") + "」，结合拼写练习巩固。";
+  }
+  return "「" + word + "」可按发音音节分段记忆：逐段朗读 → 整体连读 → 联想含义「" + (cn || "—") + "」→ 书写巩固。";
+}
+
+function genExample(word, pos) {
+  var key = IELTS_TEMPLATES[pos] ? pos : "default";
+  var templates = IELTS_TEMPLATES[key];
+  var idx = 0;
+  for (var i = 0; i < word.length; i++) idx += word.charCodeAt(i);
+  idx = idx % templates.length;
+  return templates[idx].replace(/\{word\}/g, word);
+}
+
+function genPoint(word, pos, cn) {
+  var key = IELTS_POINTS[pos] ? pos : "default";
+  return IELTS_POINTS[key] + " 释义：" + (cn || "—") + "。";
+}
+
+// ============================================================
+// API 调用（用 AbortController 实现超时）
+// ============================================================
+function fetchWithTimeout(url, ms) {
+  var controller = new AbortController();
+  var timer = setTimeout(function() { controller.abort(); }, ms);
+  return fetch(url, { signal: controller.signal }).then(function(r) {
+    clearTimeout(timer);
+    return r;
+  }).catch(function(e) {
+    clearTimeout(timer);
+    throw e;
+  });
+}
+
+function fetchDictionary(word) {
+  return fetchWithTimeout("https://api.dictionaryapi.dev/api/v2/entries/en/" + word, 10000)
+    .then(function(r) {
+      if (!r.ok) return null;
+      return r.json();
+    })
+    .then(function(data) {
+      if (!Array.isArray(data) || data.length === 0) return null;
+      var e = data[0];
+      var phU = "", phK = "", auU = "", auK = "";
+      var phons = e.phonetics || [];
+      for (var i = 0; i < phons.length; i++) {
+        var t = phons[i].text || "";
+        var a = phons[i].audio || "";
+        if (t && !phU) phU = t;
+        if (a) {
+          if (a.toLowerCase().indexOf("us") >= 0 && !auU) auU = a;
+          else if (a.toLowerCase().indexOf("uk") >= 0 && !auK) auK = a;
+          else if (!auU) auU = a;
+        }
+        if (t && !phK) phK = t;
+      }
+      var ms = [];
+      var meanings = e.meanings || [];
+      for (var mi = 0; mi < Math.min(meanings.length, 3); mi++) {
+        var pos = meanings[mi].partOfSpeech || "";
+        var defs = meanings[mi].definitions || [];
+        for (var di = 0; di < Math.min(defs.length, 2); di++) {
+          ms.push({ pos: pos, def: defs[di].definition || "", ex: defs[di].example || "" });
+        }
+      }
+      return { phU: phU, phK: phK, auU: auU, auK: auK, ms: ms.slice(0, 5) };
+    })
+    .catch(function() { return null; });
+}
+
+function translate(text) {
+  if (!text) return Promise.resolve("");
+  var url = "https://api.mymemory.translated.net/get?q=" + encodeURIComponent(text) + "&langpair=en|zh";
+  return fetchWithTimeout(url, 10000)
+    .then(function(r) {
+      if (!r.ok) return "";
+      return r.json();
+    })
+    .then(function(d) {
+      if (d && d.responseData) return d.responseData.translatedText || "";
+      return "";
+    })
+    .catch(function() { return ""; });
+}
+
+function translateBatch(texts) {
+  var unique = [];
+  var seen = {};
+  for (var i = 0; i < texts.length; i++) {
+    if (texts[i] && !seen[texts[i]]) {
+      seen[texts[i]] = true;
+      unique.push(texts[i]);
+    }
+  }
+  var promises = unique.map(function(t) {
+    return translate(t).then(function(result) { return { key: t, val: result }; });
+  });
+  return Promise.all(promises).then(function(results) {
+    var map = {};
+    for (var i = 0; i < results.length; i++) {
+      map[results[i].key] = results[i].val;
+    }
+    return map;
+  });
+}
+
+// ============================================================
+// 查询主流程
+// ============================================================
+var currentWord = null;
+
+function lookupWord(word) {
+  word = word.trim().toLowerCase();
+  var result = {
+    word: word,
+    phonetic_us: "",
+    phonetic_uk: "",
+    audio_us: "",
+    audio_uk: "",
+    chinese_meaning: "",
+    definitions: [],
+    ielts_example_en: "",
+    ielts_example_zh: "",
+    ielts_point: "",
+    sound_mnemonic: "",
+    letter_mnemonic: ""
+  };
+
+  return fetchDictionary(word).then(function(dic) {
+    var toTranslate = [word];
+    var meaningsRaw = [];
+
+    if (dic) {
+      result.phonetic_us = dic.phU;
+      result.phonetic_uk = dic.phK;
+      result.audio_us = dic.auU;
+      result.audio_uk = dic.auK;
+      meaningsRaw = dic.ms;
+      for (var i = 0; i < meaningsRaw.length; i++) {
+        if (meaningsRaw[i].def) toTranslate.push(meaningsRaw[i].def);
+        if (meaningsRaw[i].ex) toTranslate.push(meaningsRaw[i].ex);
+      }
+    }
+
+    return translateBatch(toTranslate).then(function(tr) {
+      result.chinese_meaning = tr[word] || "（未获取到释义）";
+
+      var pos = "default";
+      var posPri = { noun: 1, adjective: 2, adverb: 3, verb: 4 };
+      var bestPos = null;
+      var bestPri = 99;
+
+      for (var i = 0; i < meaningsRaw.length; i++) {
+        var m = meaningsRaw[i];
+        var cn = tr[m.def] || "";
+        var exCn = m.ex ? (tr[m.ex] || "") : "";
+        result.definitions.push({ pos: m.pos, en: m.def, zh: cn, ex: m.ex, ex_zh: exCn });
+        var p = posPri[m.pos] || 50;
+        if (p < bestPri) { bestPri = p; bestPos = m.pos; }
+      }
+      if (bestPos) pos = bestPos;
+
+      if (!result.chinese_meaning || result.chinese_meaning === "（未获取到释义）") {
+        var allZh = [];
+        for (var j = 0; j < result.definitions.length; j++) {
+          if (result.definitions[j].zh) allZh.push(result.definitions[j].zh);
+        }
+        if (allZh.length) result.chinese_meaning = allZh.join("；");
+      }
+
+      // 离线生成
+      result.ielts_example_en = genExample(word, pos);
+      result.ielts_point = genPoint(word, pos, result.chinese_meaning);
+      result.sound_mnemonic = genSoundMnemonic(word, result.phonetic_us, result.chinese_meaning);
+      result.letter_mnemonic = genLetterMnemonic(word, result.chinese_meaning);
+
+      // 翻译例句
+      return translate(result.ielts_example_en).then(function(exZh) {
+        result.ielts_example_zh = exZh;
+        return result;
+      });
+    });
+  });
+}
+
+// ============================================================
+// 前端渲染（用 DOM API 构建，避免引号地狱）
+// ============================================================
+function searchWord() {
+  var word = $("wordInput").value.trim();
+  if (!word) { toast("请输入单词"); return; }
+  $("btnSearch").disabled = true;
+  $("resultArea").innerHTML = '<div class="loading-card"><div class="spinner"></div>' +
+    '<p>正在查询「<b>' + esc(word) + '</b>」<span class="loading-dots"></span></p>' +
+    '<p style="margin-top:6px;font-size:12px">词典 · 翻译 · 记忆法生成中</p></div>';
+
+  lookupWord(word).then(function(data) {
+    currentWord = data;
+    renderResult(data);
+    highlightSaved();
+  }).catch(function(e) {
+    $("resultArea").innerHTML = '<div class="placeholder"><div class="placeholder-icon">⚠️</div>' +
+      '<h2>查询失败</h2><p>' + esc(String(e)) + '</p></div>';
+  }).then(function() {
+    $("btnSearch").disabled = false;
+  });
+}
+
+function makeCard(className, titleIcon, titleText, contentHTML, extraTitleHTML) {
+  var card = document.createElement("div");
+  card.className = "card " + (className || "");
+
+  var titleDiv = document.createElement("div");
+  titleDiv.className = "card-title";
+  titleDiv.innerHTML = '<span class="icon">' + titleIcon + '</span> ' + titleText +
+    (extraTitleHTML || "");
+  card.appendChild(titleDiv);
+
+  var content = document.createElement("div");
+  content.innerHTML = contentHTML;
+  card.appendChild(content);
+
+  return card;
+}
+
+function renderResult(d) {
+  var area = $("resultArea");
+  area.innerHTML = "";
+
+  var wrapper = document.createElement("div");
+  wrapper.className = "word-card";
+
+  // --- 单词头部卡片 ---
+  var headCard = document.createElement("div");
+  headCard.className = "card";
+
+  var headDiv = document.createElement("div");
+  headDiv.className = "word-header";
+
+  var headLeft = document.createElement("div");
+
+  var wordDiv = document.createElement("div");
+  wordDiv.className = "word-text";
+  wordDiv.textContent = d.word;
+  headLeft.appendChild(wordDiv);
+
+  var phDiv = document.createElement("div");
+  phDiv.className = "phonetics";
+
+  if (d.phonetic_us) {
+    phDiv.appendChild(makePhoneticRow("US", d.phonetic_us, d.word, "en-US"));
+  }
+  if (d.phonetic_uk) {
+    phDiv.appendChild(makePhoneticRow("UK", d.phonetic_uk, d.word, "en-GB"));
+  }
+  if (!d.phonetic_us && !d.phonetic_uk) {
+    var row = document.createElement("div");
+    row.className = "phonetic-row";
+    var btn = document.createElement("button");
+    btn.className = "btn-speak";
+    btn.textContent = "🔊 朗读";
+    btn.addEventListener("click", function() { speak(d.word, "en-US"); });
+    row.appendChild(btn);
+    phDiv.appendChild(row);
+  }
+  headLeft.appendChild(phDiv);
+  headDiv.appendChild(headLeft);
+
+  var actions = document.createElement("div");
+  actions.className = "header-actions";
+  var saveBtn = document.createElement("button");
+  saveBtn.className = "save-btn";
+  saveBtn.id = "btnSave";
+  saveBtn.textContent = "⭐ 保存";
+  saveBtn.addEventListener("click", saveWord);
+  actions.appendChild(saveBtn);
+  headDiv.appendChild(actions);
+
+  headCard.appendChild(headDiv);
+  wrapper.appendChild(headCard);
+
+  // --- 中文释义 ---
+  var defsHTML = "";
+  if (d.definitions && d.definitions.length) {
+    defsHTML = '<div class="def-list" style="margin-top:11px">';
+    for (var i = 0; i < d.definitions.length; i++) {
+      var m = d.definitions[i];
+      defsHTML += '<div class="def-item">';
+      defsHTML += '<div class="def-pos">' + esc(m.pos) + '</div>';
+      defsHTML += '<div class="def-en">' + esc(m.en) + '</div>';
+      if (m.zh) defsHTML += '<div class="def-zh">' + esc(m.zh) + '</div>';
+      if (m.ex) defsHTML += '<div class="def-zh" style="color:var(--green)"><i>例：' + esc(m.ex) + '</i></div>';
+      defsHTML += '</div>';
+    }
+    defsHTML += '</div>';
+  }
+  wrapper.appendChild(makeCard("", "🇨🇳", "中文释义",
+    '<div class="meaning-main">' + esc(d.chinese_meaning || "—") + '</div>' + defsHTML));
+
+  // --- 雅思考点例句 ---
+  var exTitleExtra = "";
+  if (d.ielts_example_en) {
+    exTitleExtra = ' <button class="btn-speak" id="btnSpeakEx" style="margin-left:auto">🔊</button>';
+  }
+  var exCard = makeCard("example-card", "📝", "雅思考点例句",
+    '<div class="example-en">' + esc(d.ielts_example_en || "—") + '</div>' +
+    (d.ielts_example_zh ? '<div class="example-zh">' + esc(d.ielts_example_zh) + '</div>' : ""),
+    exTitleExtra);
+  wrapper.appendChild(exCard);
+  if (d.ielts_example_en) {
+    var exBtn = exCard.querySelector("#btnSpeakEx");
+    if (exBtn) exBtn.addEventListener("click", function() { speak(d.ielts_example_en, "en-US"); });
+  }
+
+  // --- 雅思考点分析 ---
+  wrapper.appendChild(makeCard("point-card", "🎯", "雅思考点分析",
+    '<div class="point-text">' + esc(d.ielts_point || "—") + '</div>'));
+
+  // --- 读音记忆法 ---
+  wrapper.appendChild(makeCard("mnemonic-card sound", "🎵", "读音记忆法",
+    '<div class="mnemonic-text">' + esc(d.sound_mnemonic || "—") + '</div>'));
+
+  // --- 字母记忆法 ---
+  wrapper.appendChild(makeCard("mnemonic-card letter", "🔤", "字母记忆法",
+    '<div class="mnemonic-text">' + esc(d.letter_mnemonic || "—") + '</div>'));
+
+  // --- 来源说明 ---
+  var note = document.createElement("div");
+  note.className = "source-note";
+  note.textContent = "数据来源：词典API · MyMemory翻译 · 离线引擎 · 生词本存于本地浏览器";
+  wrapper.appendChild(note);
+
+  area.appendChild(wrapper);
+}
+
+function makePhoneticRow(tag, phonetic, word, lang) {
+  var row = document.createElement("div");
+  row.className = "phonetic-row";
+
+  var tagSpan = document.createElement("span");
+  tagSpan.className = "tag";
+  tagSpan.textContent = tag;
+  row.appendChild(tagSpan);
+
+  row.appendChild(document.createTextNode(phonetic + " "));
+
+  var btn = document.createElement("button");
+  btn.className = "btn-speak";
+  btn.textContent = "🔊";
+  btn.addEventListener("click", function() { speak(word, lang); });
+  row.appendChild(btn);
+
+  return row;
+}
+
+// ============================================================
+// 生词本 (localStorage)
+// ============================================================
+function getSavedWords() {
+  try { return JSON.parse(localStorage.getItem("ielts_words") || "{}"); }
+  catch(e) { return {}; }
+}
+function setSavedWords(w) {
+  try { localStorage.setItem("ielts_words", JSON.stringify(w)); } catch(e) {}
+}
+
+function saveWord() {
+  if (!currentWord) return;
+  var w = getSavedWords();
+  var d = currentWord;
+  d.saved_at = new Date().toLocaleString("zh-CN");
+  w[d.word] = d;
+  setSavedWords(w);
+  toast("⭐ 已保存到生词本");
+  loadWords();
+}
+
+function loadWords() {
+  renderWordList(getSavedWords());
+}
+
+function renderWordList(savedWords) {
+  var filter = ($("filterInput").value || "").trim().toLowerCase();
+  var entries = Object.values(savedWords).sort(function(a, b) {
+    return (b.saved_at || "").localeCompare(a.saved_at || "");
+  });
+  var filtered = entries;
+  if (filter) {
+    filtered = entries.filter(function(w) {
+      return w.word.toLowerCase().indexOf(filter) >= 0 ||
+        (w.chinese_meaning || "").toLowerCase().indexOf(filter) >= 0;
+    });
+  }
+
+  $("wordCount").textContent = entries.length;
+  var list = $("wordList");
+
+  if (!filtered.length) {
+    list.innerHTML = '<div class="empty-list">' + (filter ? "未找到匹配单词" : "暂无保存的单词") + '</div>';
+    return;
+  }
+
+  list.innerHTML = "";
+  for (var i = 0; i < filtered.length; i++) {
+    (function(w) {
+      var item = document.createElement("div");
+      item.className = "word-item";
+      if (currentWord && currentWord.word === w.word) item.classList.add("active");
+
+      var info = document.createElement("div");
+      info.className = "info";
+
+      var wDiv = document.createElement("div");
+      wDiv.className = "w";
+      wDiv.textContent = w.word;
+      info.appendChild(wDiv);
+
+      var mDiv = document.createElement("div");
+      mDiv.className = "m";
+      mDiv.textContent = (w.chinese_meaning || "").slice(0, 22);
+      info.appendChild(mDiv);
+
+      item.appendChild(info);
+
+      var delBtn = document.createElement("button");
+      delBtn.className = "del";
+      delBtn.textContent = "✕";
+      delBtn.title = "删除";
+      delBtn.addEventListener("click", function(e) {
+        e.stopPropagation();
+        deleteWord(w.word);
+      });
+      item.appendChild(delBtn);
+
+      item.addEventListener("click", function() { viewSaved(w.word); });
+
+      list.appendChild(item);
+    })(filtered[i]);
+  }
+}
+
+function viewSaved(word) {
+  var w = getSavedWords()[word];
+  if (!w) return;
+  currentWord = Object.assign({}, w, { definitions: [] });
+  $("wordInput").value = word;
+  renderResult(currentWord);
+  loadWords();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function deleteWord(word) {
+  var w = getSavedWords();
+  delete w[word];
+  setSavedWords(w);
+  toast("已删除");
+  loadWords();
+  highlightSaved();
+}
+
+function highlightSaved() {
+  var btn = $("btnSave");
+  if (!btn || !currentWord) return;
+  var w = getSavedWords();
+  if (w[currentWord.word]) {
+    btn.classList.add("saved");
+    btn.textContent = "✓ 已保存";
+  } else {
+    btn.classList.remove("saved");
+    btn.textContent = "⭐ 保存";
+  }
+}
+
+// ============================================================
+// 设置弹窗
+// ============================================================
+function openSettings() {
+  $("settingsModal").classList.add("show");
+  $("settingsStatus").textContent = "";
+  $("settingsStatus").className = "modal-status";
+  $("setBaseUrl").value = localStorage.getItem("ai_base_url") || "";
+  $("setModel").value = localStorage.getItem("ai_model") || "";
+  $("setApiKey").value = "";
+  $("setApiKey").placeholder = localStorage.getItem("ai_key") ? "已配置（留空则不修改）" : "sk-…";
+}
+function closeSettings() { $("settingsModal").classList.remove("show"); }
+function saveSettings() {
+  if ($("setBaseUrl").value.trim()) localStorage.setItem("ai_base_url", $("setBaseUrl").value.trim());
+  if ($("setModel").value.trim()) localStorage.setItem("ai_model", $("setModel").value.trim());
+  if ($("setApiKey").value.trim()) localStorage.setItem("ai_key", $("setApiKey").value.trim());
+  $("settingsStatus").className = "modal-status ok";
+  $("settingsStatus").textContent = "✓ 设置已保存";
+  setTimeout(closeSettings, 800);
+}
+function clearKey() {
+  localStorage.removeItem("ai_key");
+  $("setApiKey").value = "";
+  $("setApiKey").placeholder = "sk-…";
+  $("settingsStatus").className = "modal-status ok";
+  $("settingsStatus").textContent = "✓ Key 已清除";
+  toast("Key 已清除");
+}
+
+// ============================================================
+// 事件绑定 & 初始化
+// ============================================================
+$("btnSearch").addEventListener("click", searchWord);
+$("wordInput").addEventListener("keydown", function(e) {
+  if (e.key === "Enter") searchWord();
+});
+$("filterInput").addEventListener("input", loadWords);
+$("btnSettings").addEventListener("click", openSettings);
+$("btnCloseSettings").addEventListener("click", closeSettings);
+$("btnSaveSettings").addEventListener("click", saveSettings);
+$("btnClearKey").addEventListener("click", clearKey);
+$("settingsModal").addEventListener("click", function(e) {
+  if (e.target === $("settingsModal")) closeSettings();
+});
+
+// 初始加载生词本
+loadWords();
+</script>
+</body>
+</html>
